@@ -35,7 +35,9 @@ window.Ambient = {
       fm.material.dispose();
       Grid.scene.remove(fm);
     }
-    this._lastMission = window.Missions ? window.Missions.current() : 0;
+    var _mi = window.Missions ? window.Missions.current() : 0;
+    var missionChanged = (_mi !== this._lastMission);
+    this._lastMission = _mi;
 
     // build texture once
     var tex = this._buildTexture();
@@ -103,6 +105,15 @@ window.Ambient = {
     geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
     geo.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
 
+    // DEFECT A FIX: build index buffer so ribbon draws as triangles, not strips
+    var idxArr = [];
+    for (var q = 0; q < totalPts - 1; q++) {
+      var a = q * 2, bb = a + 1, c2 = a + 2, d = a + 3;
+      idxArr.push(a, bb, c2);
+      idxArr.push(bb, d, c2);
+    }
+    geo.setIndex(idxArr);
+
     var mat = new THREE.MeshBasicMaterial({
       map: tex,
       transparent: true,
@@ -133,12 +144,15 @@ window.Ambient = {
     fieldTex.magFilter = THREE.LinearFilter;
     fieldTex.needsUpdate = true;
 
-    this._fieldInf   = new Float32Array(FW * FH);
-    this._fieldHold  = new Float32Array(FW * FH);
-    this._fieldNec   = new Float32Array(FW * FH);
+    // state survives a re-attach; only a real mission change resets the organ
+    if (missionChanged || !this._fieldInf) {
+      this._fieldInf   = new Float32Array(FW * FH);
+      this._fieldHold  = new Float32Array(FW * FH);
+      this._fieldNec   = new Float32Array(FW * FH);
+      this._livesStart = window.Lives ? window.Lives.get() : 10;
+    }
     this._fieldTex   = fieldTex;
     this._fieldData  = fieldTex.image.data;
-    this._livesStart = window.Lives ? window.Lives.get() : 10;
     this._lastNow    = 0;
 
     var fieldGeo = new THREE.PlaneGeometry(Grid.W * Grid.TILE, Grid.H * Grid.TILE);

@@ -306,7 +306,7 @@ window.Grid = {
     var fh = H * TILE + TILE * 0.55;
     var frameGeo = new THREE.PlaneGeometry(fw, fh);
     var frameMat = new THREE.MeshBasicMaterial({
-      color: new THREE.Color(0.04, 0.07, 0.03),
+      color: new THREE.Color(0.102, 0.055, 0.071),
       side: THREE.DoubleSide,
       depthWrite: false
     });
@@ -318,7 +318,7 @@ window.Grid = {
     // outer darker margin
     var outerGeo = new THREE.PlaneGeometry(fw + TILE * 0.9, fh + TILE * 0.9);
     var outerMat = new THREE.MeshBasicMaterial({
-      color: new THREE.Color(0.02, 0.04, 0.02),
+      color: new THREE.Color(0.102, 0.055, 0.071),
       side: THREE.DoubleSide,
       depthWrite: false
     });
