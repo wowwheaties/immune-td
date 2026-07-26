@@ -6,7 +6,11 @@ Pathogens march along the gastric tract; you spend **ATP** to place immune cells
 kill them before they reach the far end. Every leak costs the organ — and you can see it
 happening, because the stomach itself sickens as you lose.
 
-**▶ Play: _(add your GitHub Pages link here once it's live)_**
+## ▶ [**PLAY NOW — tap here**](https://wowwheaties.github.io/immune-td/)
+
+https://wowwheaties.github.io/immune-td/
+
+*(On iPhone: this opens in Safari. Rotate to landscape. Then Share → Add to Home Screen to play full-screen.)*
 
 ## How to play
 
