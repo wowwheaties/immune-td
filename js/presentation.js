@@ -398,6 +398,10 @@
   // tower pop-timer storage (presentation-only)
   var _popTimers = {};
 
+  var IDLE_PULSE = 0.035;   // +/- 3.5% membrane pulse
+  var IDLE_DRIFT = 0.5;     // world units; TILE is 32, so ~1.5% of a cell — it must
+                             // NEVER visibly leave its square
+
   function worldPos(x, y) {
     var f = Game.frustum();
     return { x: x * Grid.TILE + f.ox, y: -(y * Grid.TILE) + f.oy };
@@ -496,6 +500,21 @@
         } else {
           var wp2 = worldPos(t.x, t.y);
           meshes['t'+t.id].mesh.position.set(wp2.x, wp2.y, 1);
+
+          // Rung 1 idle life — membrane pulse + slow crawl. Presentation only.
+          // Skipped while the placement pop is animating (the pop loop later in
+          // sync() owns scale during that window; running both would fight).
+          if (!_popTimers['t'+t.id]) {
+            var nowIdle = performance.now();
+            var phI  = (t.id * 1.37) % 6.283;
+            var puls = 1 + IDLE_PULSE * Math.sin(nowIdle / 900 + phI);
+            meshes['t'+t.id].mesh.scale.set(puls, puls, puls);
+            meshes['t'+t.id].mesh.position.set(
+              wp2.x + IDLE_DRIFT * Math.sin(nowIdle / 1700 + phI * 1.7),
+              wp2.y + IDLE_DRIFT * Math.cos(nowIdle / 2100 + phI * 2.3),
+              1);
+          }
+
           if (meshes['t'+t.id].shadow) {
             meshes['t'+t.id].shadow.position.set(wp2.x, wp2.y, 0.04);
           }
@@ -1228,6 +1247,19 @@
     },
 
     boltCount: function() { return bolts.length; },
+
+    idleBounds: function() { return { pulse: IDLE_PULSE, drift: IDLE_DRIFT }; },
+
+    // Finish any running placement-pop immediately. The pop animates scale 0.6 -> 1.0
+    // over IMPACT_LIFE_MS and OWNS scale while it runs, so idle life is skipped during
+    // it. A selftest that places a cell and asserts idle bounds in the same turn would
+    // otherwise be reading a pop frame (0.6), not the idle pulse.
+    settlePops: function() {
+      for (var pk in _popTimers) {
+        if (meshes[pk] && meshes[pk].mesh) meshes[pk].mesh.scale.set(1, 1, 1);
+        delete _popTimers[pk];
+      }
+    },
 
     boltEndXY: function(i) {
       if (!bolts[i]) return null;

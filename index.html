@@ -181,7 +181,7 @@
   <div>Organ: <span id="hud-lives">0</span></div>
   <div>Wave: <span id="hud-wave">0</span></div>
   <div id="hud-packs" style="font-size:13px;opacity:0.9;">Packs: —</div>
-  <div id="hud-ver">v93</div>
+  <div id="hud-ver">v95</div>
   <button id="btn-fullscreen" type="button" title="Toggle fullscreen"
     style="display:none;margin-top:6px;width:100%;min-height:34px;font:14px monospace;
            cursor:pointer;border-radius:6px;border:1px solid #666;background:#222;color:#fff;">
@@ -215,18 +215,18 @@
   <button id="btn-sell" type="button" class="game-btn">Sell</button>
   <div id="rotate-hint">Rotate your phone — bigger board in landscape</div>
 </div>
-<script src="three.min.js?v=93"></script>
-<script src="js/path.js?v=93"></script>
-<script src="js/grid.js?v=93"></script>
-<script src="js/lives.js?v=93"></script>
-<script src="js/enemies.js?v=93"></script>
-<script src="js/economy.js?v=93"></script>
-<script src="js/towers.js?v=93"></script>
-<script src="js/waves.js?v=93"></script>
-<script src="js/missions.js?v=93"></script>
-<script src="js/game.js?v=93"></script>
-<script src="js/presentation.js?v=93"></script><script src="js/ambient.js?v=93"></script>
-<script src="js/sfx.js?v=93"></script>
+<script src="three.min.js?v=95"></script>
+<script src="js/path.js?v=95"></script>
+<script src="js/grid.js?v=95"></script>
+<script src="js/lives.js?v=95"></script>
+<script src="js/enemies.js?v=95"></script>
+<script src="js/economy.js?v=95"></script>
+<script src="js/towers.js?v=95"></script>
+<script src="js/waves.js?v=95"></script>
+<script src="js/missions.js?v=95"></script>
+<script src="js/game.js?v=95"></script>
+<script src="js/presentation.js?v=95"></script><script src="js/ambient.js?v=95"></script>
+<script src="js/sfx.js?v=95"></script>
 <script>
 (function() {
   var canvas = document.getElementById('c');
@@ -4890,6 +4890,41 @@
 
   // run checkSelfTest at end of boot — MUST stay the last statement so that every
   // window.selftest_* handler is defined before the dispatcher looks it up
+  window.selftest_CELLLIFE = function() {
+    var out = [];
+    function chk(c, m) { if (!c) out.push('FAIL ' + m); }
+    Missions.load(0); Game.reset();
+    var b = Presentation.idleBounds();
+    chk(b && typeof b.pulse === 'number', '(a) idleBounds');
+    chk(b.pulse > 0 && b.pulse <= 0.06, '(a.2) pulse sane got ' + b.pulse);
+    chk(b.drift > 0 && b.drift <= 1.5, '(a.3) drift sane got ' + b.drift);
+    Towers.place(4, 5);
+    Presentation.sync();
+    // the placement pop OWNS scale while it runs (0.6 -> 1.0) and idle life is skipped
+    // during it; settle it so the bounds assert reads the IDLE pulse, not a pop frame
+    Presentation.settlePops();
+    Presentation.sync();
+    var lives0 = Lives.get(), gold0 = Economy.getGold(), n0 = Enemies.all().length;
+    for (var i = 0; i < 30; i++) { Presentation.sync(); }
+    chk(Lives.get() === lives0, '(b) sync moved lives');
+    chk(Economy.getGold() === gold0, '(b.2) sync moved gold');
+    chk(Enemies.all().length === n0, '(b.3) sync moved enemies');
+    var tm = null, all = Grid.scene.children;
+    for (var k = 0; k < all.length; k++) {
+      if (all[k].position && Math.abs(all[k].position.z - 1) < 0.001 && all[k].scale) tm = all[k];
+    }
+    chk(tm !== null, '(c) tower mesh found');
+    if (tm) {
+      chk(tm.scale.x >= 1 - b.pulse - 1e-6 && tm.scale.x <= 1 + b.pulse + 1e-6,
+          '(c.2) pulse in bounds got ' + tm.scale.x);
+      chk(Math.abs(tm.scale.x - tm.scale.y) < 1e-6, '(c.3) uniform scale');
+    }
+    Missions.load(0);
+    var el = document.getElementById('overlay');
+    el.textContent = out.length ? ('SELFTEST CELLLIFE ' + out.join(' | ')) : 'SELFTEST CELLLIFE PASS';
+    return out.length === 0;
+  };
+
   window.checkSelfTest();
 
 })();
