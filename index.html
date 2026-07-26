@@ -165,6 +165,56 @@
     #rotate-hint { display:block; position:fixed; top:calc(env(safe-area-inset-top, 0px) + 8px); left:50%; transform:translateX(-50%); background:rgba(10,20,30,0.85); color:#cfe; padding:6px 14px; border-radius:14px; font-size:12px; z-index:40; pointer-events:none; }
   }
 
+  /* ===== AAA polish pass — chrome only, no geometry ===== */
+  body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+  #vignette {
+    position:fixed; inset:0; pointer-events:none; z-index:5;
+    background:
+      radial-gradient(ellipse 78% 68% at 50% 46%, rgba(0,0,0,0) 52%, rgba(0,0,0,0.62) 100%),
+      linear-gradient(to bottom, rgba(0,0,0,0.32) 0%, rgba(0,0,0,0) 18%);
+  }
+  .game-btn {
+    background: linear-gradient(180deg, rgba(30,42,50,0.92) 0%, rgba(16,24,30,0.94) 100%);
+    color:#dff1f4;
+    border:1px solid rgba(120,214,226,0.22);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.07), 0 2px 6px rgba(0,0,0,0.45);
+    font-weight:600; letter-spacing:0.2px;
+    transition: border-color .12s ease, box-shadow .12s ease, transform .06s ease;
+  }
+  .game-btn:active { transform: translateY(1px); }
+  .game-btn.active {
+    background: linear-gradient(180deg, rgba(28,86,96,0.95) 0%, rgba(16,52,60,0.96) 100%);
+    color:#eafcff; border-color: rgba(96,232,246,0.75); outline:none;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.12),
+                0 0 0 1px rgba(96,232,246,0.28), 0 0 16px rgba(64,214,232,0.34);
+  }
+  .game-btn-primary {
+    background: linear-gradient(180deg, #37b98b 0%, #1d7d63 55%, #14614c 100%);
+    color:#04241c;
+    border:1px solid rgba(150,255,214,0.40);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.32), 0 2px 10px rgba(0,0,0,0.45),
+                0 0 20px rgba(45,190,142,0.28);
+    text-shadow: 0 1px 0 rgba(255,255,255,0.20);
+  }
+  .unit-cost { color:#9fd4dc; }
+  #bottom-bar {
+    background: linear-gradient(180deg, rgba(8,12,15,0) 0%, rgba(8,12,15,0.72) 22%,
+                                        rgba(6,9,12,0.90) 100%);
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    border-top:1px solid rgba(120,214,226,0.10);
+  }
+  #hud {
+    background: rgba(8,14,18,0.62) !important;
+    border:1px solid rgba(120,214,226,0.16);
+    box-shadow: 0 4px 18px rgba(0,0,0,0.45);
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    letter-spacing:0.4px;
+  }
+  #btn-fullscreen {
+    background: rgba(16,24,30,0.9) !important;
+    border:1px solid rgba(120,214,226,0.22) !important;
+    color:#cfe9ee !important;
+  }
 </style>
 
 
@@ -176,12 +226,13 @@
 <div id="unlock-hint" role="status"></div>
 <div id="m1-tutor" role="status"></div>
 <div id="wave-toast" role="status"></div>
+<div id="vignette"></div>
 <div id="hud" style="position:absolute;top:max(8px,env(safe-area-inset-top));right:max(8px,env(safe-area-inset-right));z-index:10;color:#fff;font:16px/1.35 monospace;text-align:right;padding:8px 10px;background:rgba(0,0,0,0.55);border-radius:8px;">
   <div>ATP: <span id="hud-gold">0</span></div>
   <div>Organ: <span id="hud-lives">0</span></div>
   <div>Wave: <span id="hud-wave">0</span></div>
   <div id="hud-packs" style="font-size:13px;opacity:0.9;">Packs: —</div>
-  <div id="hud-ver">v95</div>
+  <div id="hud-ver">v97</div>
   <button id="btn-fullscreen" type="button" title="Toggle fullscreen"
     style="display:none;margin-top:6px;width:100%;min-height:34px;font:14px monospace;
            cursor:pointer;border-radius:6px;border:1px solid #666;background:#222;color:#fff;">
@@ -215,18 +266,18 @@
   <button id="btn-sell" type="button" class="game-btn">Sell</button>
   <div id="rotate-hint">Rotate your phone — bigger board in landscape</div>
 </div>
-<script src="three.min.js?v=95"></script>
-<script src="js/path.js?v=95"></script>
-<script src="js/grid.js?v=95"></script>
-<script src="js/lives.js?v=95"></script>
-<script src="js/enemies.js?v=95"></script>
-<script src="js/economy.js?v=95"></script>
-<script src="js/towers.js?v=95"></script>
-<script src="js/waves.js?v=95"></script>
-<script src="js/missions.js?v=95"></script>
-<script src="js/game.js?v=95"></script>
-<script src="js/presentation.js?v=95"></script><script src="js/ambient.js?v=95"></script>
-<script src="js/sfx.js?v=95"></script>
+<script src="three.min.js?v=97"></script>
+<script src="js/path.js?v=97"></script>
+<script src="js/grid.js?v=97"></script>
+<script src="js/lives.js?v=97"></script>
+<script src="js/enemies.js?v=97"></script>
+<script src="js/economy.js?v=97"></script>
+<script src="js/towers.js?v=97"></script>
+<script src="js/waves.js?v=97"></script>
+<script src="js/missions.js?v=97"></script>
+<script src="js/game.js?v=97"></script>
+<script src="js/presentation.js?v=97"></script><script src="js/ambient.js?v=97"></script>
+<script src="js/sfx.js?v=97"></script>
 <script>
 (function() {
   var canvas = document.getElementById('c');
@@ -4925,6 +4976,30 @@
     return out.length === 0;
   };
 
+  window.selftest_POLISH = function() {
+    var out = [];
+    function chk(c, m) { if (!c) out.push('FAIL ' + m); }
+    var v = document.getElementById('vignette');
+    chk(v !== null, '(a) #vignette exists');
+    if (v) {
+      var cs = getComputedStyle(v);
+      chk(cs.pointerEvents === 'none', '(a.2) vignette MUST NOT eat taps, got ' + cs.pointerEvents);
+      chk(parseInt(cs.zIndex, 10) < 30, '(a.3) vignette must sit under the bar, got ' + cs.zIndex);
+    }
+    var b = document.getElementById('btn-start-wave');
+    chk(b !== null, '(b) start button');
+    if (b) {
+      var r = b.getBoundingClientRect();
+      chk(r.height >= 48, '(b.2) primary still >=48 tall, got ' + r.height);
+    }
+    var tb = document.getElementById('btn-type-basic');
+    chk(tb !== null, '(c) catalog button');
+    if (tb) chk(getComputedStyle(tb).minHeight === '48px',
+                '(c.2) .game-btn min-height contract, got ' + getComputedStyle(tb).minHeight);
+    var el = document.getElementById('overlay');
+    el.textContent = out.length ? ('SELFTEST POLISH ' + out.join(' | ')) : 'SELFTEST POLISH PASS';
+    return out.length === 0;
+  };
   window.checkSelfTest();
 
 })();
