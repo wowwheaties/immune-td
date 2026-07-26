@@ -232,7 +232,7 @@
   <div>Organ: <span id="hud-lives">0</span></div>
   <div>Wave: <span id="hud-wave">0</span></div>
   <div id="hud-packs" style="font-size:13px;opacity:0.9;">Packs: —</div>
-  <div id="hud-ver">v97</div>
+  <div id="hud-ver">v98</div>
   <button id="btn-fullscreen" type="button" title="Toggle fullscreen"
     style="display:none;margin-top:6px;width:100%;min-height:34px;font:14px monospace;
            cursor:pointer;border-radius:6px;border:1px solid #666;background:#222;color:#fff;">
@@ -266,18 +266,18 @@
   <button id="btn-sell" type="button" class="game-btn">Sell</button>
   <div id="rotate-hint">Rotate your phone — bigger board in landscape</div>
 </div>
-<script src="three.min.js?v=97"></script>
-<script src="js/path.js?v=97"></script>
-<script src="js/grid.js?v=97"></script>
-<script src="js/lives.js?v=97"></script>
-<script src="js/enemies.js?v=97"></script>
-<script src="js/economy.js?v=97"></script>
-<script src="js/towers.js?v=97"></script>
-<script src="js/waves.js?v=97"></script>
-<script src="js/missions.js?v=97"></script>
-<script src="js/game.js?v=97"></script>
-<script src="js/presentation.js?v=97"></script><script src="js/ambient.js?v=97"></script>
-<script src="js/sfx.js?v=97"></script>
+<script src="three.min.js?v=98"></script>
+<script src="js/path.js?v=98"></script>
+<script src="js/grid.js?v=98"></script>
+<script src="js/lives.js?v=98"></script>
+<script src="js/enemies.js?v=98"></script>
+<script src="js/economy.js?v=98"></script>
+<script src="js/towers.js?v=98"></script>
+<script src="js/waves.js?v=98"></script>
+<script src="js/missions.js?v=98"></script>
+<script src="js/game.js?v=98"></script>
+<script src="js/presentation.js?v=98"></script><script src="js/ambient.js?v=98"></script>
+<script src="js/sfx.js?v=98"></script>
 <script>
 (function() {
   var canvas = document.getElementById('c');
@@ -2063,6 +2063,7 @@
           var id = Towers.place(c.x, c.y, __placeType);
           if (id !== false) { pulseGoldFlash(); if (window.Sfx) Sfx.play('place'); hidePlaceToast(); }
           else { notifyPlaceFail(c.x, c.y); }
+          Presentation.setHoverCell(null, null);
         }
       }
     }
@@ -4936,6 +4937,25 @@
     chk(Fullscreen.active() === false, '(d) not fullscreen at rest');
     var el2 = document.getElementById('overlay');
     el2.textContent = out.length ? ('SELFTEST FULLSCREEN ' + out.join(' | ')) : 'SELFTEST FULLSCREEN PASS';
+    return out.length === 0;
+  };
+
+  window.selftest_GHOSTCLEAR = function() {
+    var out = [];
+    function chk(c, m) { if (!c) out.push('FAIL ' + m); }
+    Missions.load(0); Game.reset(); Economy.earn(500);
+    Presentation.setHoverCell(4, 5);
+    Presentation.sync();
+    chk(Presentation.ghostCellCount() > 0, '(a) preview shows while hovering an empty cell');
+    Towers.place(4, 5);
+    Presentation.setHoverCell(null, null);
+    Presentation.sync();
+    chk(Presentation.ghostCellCount() === 0,
+        '(b) preview MUST clear after placing, got ' + Presentation.ghostCellCount());
+    chk(Towers.at(4, 5) > 0, '(c) tower is there');
+    Missions.load(0);
+    var el = document.getElementById('overlay');
+    el.textContent = out.length ? ('SELFTEST GHOSTCLEAR ' + out.join(' | ')) : 'SELFTEST GHOSTCLEAR PASS';
     return out.length === 0;
   };
 
