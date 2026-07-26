@@ -232,7 +232,7 @@
   <div>Organ: <span id="hud-lives">0</span></div>
   <div>Wave: <span id="hud-wave">0</span></div>
   <div id="hud-packs" style="font-size:13px;opacity:0.9;">Packs: —</div>
-  <div id="hud-ver">v101</div>
+  <div id="hud-ver">v102</div>
   <button id="btn-fullscreen" type="button" title="Toggle fullscreen"
     style="display:none;margin-top:6px;width:100%;min-height:34px;font:14px monospace;
            cursor:pointer;border-radius:6px;border:1px solid #666;background:#222;color:#fff;">
@@ -266,18 +266,18 @@
   <button id="btn-sell" type="button" class="game-btn">Sell</button>
   <div id="rotate-hint">Rotate your phone — bigger board in landscape</div>
 </div>
-<script src="three.min.js?v=101"></script>
-<script src="js/path.js?v=101"></script>
-<script src="js/grid.js?v=101"></script>
-<script src="js/lives.js?v=101"></script>
-<script src="js/enemies.js?v=101"></script>
-<script src="js/economy.js?v=101"></script>
-<script src="js/towers.js?v=101"></script>
-<script src="js/waves.js?v=101"></script>
-<script src="js/missions.js?v=101"></script>
-<script src="js/game.js?v=101"></script>
-<script src="js/presentation.js?v=101"></script><script src="js/ambient.js?v=101"></script>
-<script src="js/sfx.js?v=101"></script>
+<script src="three.min.js?v=102"></script>
+<script src="js/path.js?v=102"></script>
+<script src="js/grid.js?v=102"></script>
+<script src="js/lives.js?v=102"></script>
+<script src="js/enemies.js?v=102"></script>
+<script src="js/economy.js?v=102"></script>
+<script src="js/towers.js?v=102"></script>
+<script src="js/waves.js?v=102"></script>
+<script src="js/missions.js?v=102"></script>
+<script src="js/game.js?v=102"></script>
+<script src="js/presentation.js?v=102"></script><script src="js/ambient.js?v=102"></script>
+<script src="js/sfx.js?v=102"></script>
 <script>
 (function() {
   var canvas = document.getElementById('c');
@@ -2547,7 +2547,7 @@
     // (c) WIN: load0;reset;start; full-schedule gameFrameSim drive behind the zero-leak reference build; damage all enemies to 0; gameFrameSim → won; text===WIN; visible; size ok
     Missions.load(0); Game.reset(); Game.start();
     Towers.place(4,5); Towers.place(8,4); Towers.place(11,4); Towers.place(14,5); // zero-leak reference build (SEQ-288 measured)
-    for (var ci = 0; ci <= 1500; ci++) { gameFrameSim(); }
+    for (var ci = 0; ci <= 3300; ci++) { gameFrameSim(); }
     var allW = Enemies.all();
     for (var di = 0; di < allW.length; di++) { Enemies.damage(allW[di].id, 999); }
     gameFrameSim(); // REAL path: latch won in Game.tick + C1 refreshOutcome
@@ -4221,10 +4221,10 @@
     }
     Missions.load(0); Game.reset();
     var m0sch = Waves.getSchedule();
-    chk(m0sch.length === 10, '(a.m0len)');
+    chk(m0sch.length === 14, '(a.m0len)');
     chk(m0sch[0][0] === 0 && m0sch[0][1] === 2, '(a.m0e0)');
-    chk(m0sch[9][0] === 1500 && m0sch[9][1] === 1, '(a.m0last)');
-    chk(m0sch[9][2] === 'boss', '(a.m0boss)');
+    chk(m0sch[13][0] === 3220 && m0sch[13][1] === 1, '(a.m0last)');
+    chk(m0sch[13][2] === 'boss', '(a.m0boss)');
     chk(!m0sch[0][2] || m0sch[0][2] === 'basic', '(a.m0noFast)');
     var idB = Enemies.spawn('basic');
     var eb = Enemies.get(idB);
@@ -4279,9 +4279,9 @@
     // (c) M0 schedule last entry — deep-equals [1500,1,'boss']
     Missions.load(0);
     var m0sch = Waves.getSchedule();
-    chk(m0sch.length === 10, '(c.m0len) got ' + m0sch.length);
-    chk(m0sch[9][0] === 1500 && m0sch[9][1] === 1 && m0sch[9][2] === 'boss',
-      '(c.m0last) [' + m0sch[9].join(',') + ']');
+    chk(m0sch.length === 14, '(c.m0len) got ' + m0sch.length);
+    chk(m0sch[13][0] === 3220 && m0sch[13][1] === 1 && m0sch[13][2] === 'boss',
+      '(c.m0last) [' + m0sch[13].join(',') + ']');
 
     // (d) Presentation.sync() after boss spawn — enemyCount >= 1
     if (window.Presentation) {
