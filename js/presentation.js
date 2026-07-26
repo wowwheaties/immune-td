@@ -743,7 +743,7 @@
       var now = performance.now();
       for (var j2 = 0; j2 < allEnemies.length; j2++) {
         var e2 = allEnemies[j2];
-        var maxHp = (e2.type === 'fast') ? (Enemies.FAST_HP || 6) : ((e2.type === 'boss') ? (Enemies.BOSS_HP || 80) : (Enemies.DEFAULT_HP || 10));
+        var maxHp = (e2.type === 'fast') ? (Enemies.FAST_HP || 6) : ((e2.type === 'boss') ? (Enemies.BOSS_HP || 100) : (Enemies.DEFAULT_HP || 10));
         var ratio = e2.hp / maxHp;
         var barKey = 'e'+e2.id;
         if (!meshes[barKey]) continue;

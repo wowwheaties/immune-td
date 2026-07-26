@@ -9,7 +9,7 @@ window.Enemies = {
   FUNGUS_SPEED: 14,
   PARASITE_SPEED: 16,
   CANCER_SPEED: 12,
-  BOSS_HP: 80,
+  BOSS_HP: 100,
   BOSS_SPEED: 14,
   PACK_STAGGER: 3,
   _nextId: 1,
