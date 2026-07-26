@@ -37,6 +37,9 @@
   var _ghostGeo = null;
   var _ghostMatValid = null;
   var _ghostMatInvalid = null;
+  // Aura materials — split centre cell from surrounding cells (SEQ-341)
+  var _ghostAuraValid = null;
+  var _ghostAuraInvalid = null;
 
   var reticleMesh = null;
   // P3: cached slow-tint lerp target (SEQ-312)
@@ -144,7 +147,7 @@
       Grid.scene.remove(g);
       if (g.geometry) g.geometry.dispose();
       // Do NOT dispose shared mats
-      if (g.material && g.material !== _ghostMatValid && g.material !== _ghostMatInvalid && g.material.dispose) g.material.dispose();
+      if (g.material && g.material !== _ghostMatValid && g.material !== _ghostMatInvalid && g.material !== _ghostAuraValid && g.material !== _ghostAuraInvalid && g.material.dispose) g.material.dispose();
     }
     ghostCells = [];
     ghostMeshes = [];
@@ -303,14 +306,25 @@
     if (ghostInvalid && !_ghostMatInvalid) {
       _ghostMatInvalid = new THREE.MeshBasicMaterial({ color: new THREE.Color(1, 0.28, 0.28), transparent: true, opacity: 0.38 });
     }
+    // Aura materials — slightly more transparent than centre (SEQ-341)
+    if (!ghostInvalid && !_ghostAuraValid) {
+      _ghostAuraValid = new THREE.MeshBasicMaterial({ color: new THREE.Color(0.35, 0.95, 0.75), transparent: true, opacity: 0.18 });
+    }
+    if (ghostInvalid && !_ghostAuraInvalid) {
+      _ghostAuraInvalid = new THREE.MeshBasicMaterial({ color: new THREE.Color(1, 0.28, 0.28), transparent: true, opacity: 0.22 });
+    }
     for (var y = 0; y < Grid.H; y++) {
       for (var x = 0; x < Grid.W; x++) {
         if (Math.abs(x - hx) + Math.abs(y - hy) > R) continue;
         ghostCells.push({ x: x, y: y });
         var wp = worldPos(x, y);
-        var mat = ghostInvalid
-          ? (_ghostMatInvalid || new THREE.MeshBasicMaterial({ color: new THREE.Color(1, 0.28, 0.28), transparent: true, opacity: 0.38 }))
-          : (_ghostMatValid || new THREE.MeshBasicMaterial({ color: new THREE.Color(0.35, 0.95, 0.75), transparent: true, opacity: 0.32 }));
+        var isCentre = (x === hx && y === hy);
+        var mat;
+        if (ghostInvalid) {
+          mat = isCentre ? _ghostMatInvalid : (_ghostAuraInvalid || _ghostMatInvalid);
+        } else {
+          mat = isCentre ? _ghostMatValid : (_ghostAuraValid || _ghostMatValid);
+        }
         var mesh = new THREE.Mesh(geo, mat);
         mesh.position.set(wp.x, wp.y, 0.38);
         Grid.scene.add(mesh);
@@ -362,14 +376,14 @@
             _edgeMat = new THREE.MeshBasicMaterial({
               color: new THREE.Color(0.40, 0.95, 1),
               transparent: true,
-              opacity: 0.42
+              opacity: 0.30
             });
           }
           var mat = _edgeMat;
         } else {
           // Interior cells: share material (SEQ-188)
           if (!_rangeMat) {
-            _rangeMat = new THREE.MeshBasicMaterial({ color: new THREE.Color(0.25, 0.55, 0.65), transparent: true, opacity: 0.22 });
+            _rangeMat = new THREE.MeshBasicMaterial({ color: new THREE.Color(0.25, 0.55, 0.65), transparent: true, opacity: 0.15 });
           }
           var mat = _rangeMat;
         }
