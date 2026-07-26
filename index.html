@@ -232,7 +232,7 @@
   <div>Organ: <span id="hud-lives">0</span></div>
   <div>Wave: <span id="hud-wave">0</span></div>
   <div id="hud-packs" style="font-size:13px;opacity:0.9;">Packs: —</div>
-  <div id="hud-ver">v102</div>
+  <div id="hud-ver">v106</div>
   <button id="btn-fullscreen" type="button" title="Toggle fullscreen"
     style="display:none;margin-top:6px;width:100%;min-height:34px;font:14px monospace;
            cursor:pointer;border-radius:6px;border:1px solid #666;background:#222;color:#fff;">
@@ -266,18 +266,18 @@
   <button id="btn-sell" type="button" class="game-btn">Sell</button>
   <div id="rotate-hint">Rotate your phone — bigger board in landscape</div>
 </div>
-<script src="three.min.js?v=102"></script>
-<script src="js/path.js?v=102"></script>
-<script src="js/grid.js?v=102"></script>
-<script src="js/lives.js?v=102"></script>
-<script src="js/enemies.js?v=102"></script>
-<script src="js/economy.js?v=102"></script>
-<script src="js/towers.js?v=102"></script>
-<script src="js/waves.js?v=102"></script>
-<script src="js/missions.js?v=102"></script>
-<script src="js/game.js?v=102"></script>
-<script src="js/presentation.js?v=102"></script><script src="js/ambient.js?v=102"></script>
-<script src="js/sfx.js?v=102"></script>
+<script src="three.min.js?v=106"></script>
+<script src="js/path.js?v=106"></script>
+<script src="js/grid.js?v=106"></script>
+<script src="js/lives.js?v=106"></script>
+<script src="js/enemies.js?v=106"></script>
+<script src="js/economy.js?v=106"></script>
+<script src="js/towers.js?v=106"></script>
+<script src="js/waves.js?v=106"></script>
+<script src="js/missions.js?v=106"></script>
+<script src="js/game.js?v=106"></script>
+<script src="js/presentation.js?v=106"></script><script src="js/ambient.js?v=106"></script>
+<script src="js/sfx.js?v=106"></script>
 <script>
 (function() {
   var canvas = document.getElementById('c');
@@ -663,7 +663,7 @@
     var holdT2 = Towers.targetOf(id2);
     var cd2 = Towers.cdOf(id2);
     chk(holdT2 === t2, '(b.still) t2 stable during 10 ticks');
-    Enemies.damage(t1, 99);
+    Enemies.damage(t1, 999);
     Towers.tick();
     chk(Towers.targetOf(id2) === holdT2, '(b.retain t2)');
     var cd2b = Towers.cdOf(id2);
@@ -2368,7 +2368,9 @@
     Game.reset();
     Game.start();
     Towers.place(4,5); Towers.place(8,4); Towers.place(11,4); Towers.place(14,5); // zero-leak reference build (SEQ-288 measured)
-    for (var iD = 0; iD < 1501; iD++) { Game.tick(); }
+    Lives.reset(99); // drive-only buffer: these assert the WIN LATCH, not balance — the
+                     // 4-tower reference build stopped being zero-leak at the 14-wave schedule
+    for (var iD = 0; iD < 3300; iD++) { Game.tick(); }
     chk(Waves.done() === true, '(d.done)');
     var allD = Enemies.all();
     for (var jD = 0; jD < allD.length; jD++) { Enemies.damage(allD[jD].id, 999); }
@@ -2547,6 +2549,8 @@
     // (c) WIN: load0;reset;start; full-schedule gameFrameSim drive behind the zero-leak reference build; damage all enemies to 0; gameFrameSim → won; text===WIN; visible; size ok
     Missions.load(0); Game.reset(); Game.start();
     Towers.place(4,5); Towers.place(8,4); Towers.place(11,4); Towers.place(14,5); // zero-leak reference build (SEQ-288 measured)
+    Lives.reset(99); // drive-only buffer: these assert the WIN LATCH, not balance — the
+                     // 4-tower reference build stopped being zero-leak at the 14-wave schedule
     for (var ci = 0; ci <= 3300; ci++) { gameFrameSim(); }
     var allW = Enemies.all();
     for (var di = 0; di < allW.length; di++) { Enemies.damage(allW[di].id, 999); }
@@ -2670,7 +2674,7 @@
     // lineEndpoints always null post-F3_PROJ (bolts replace lines) — dead if(ep) block removed
 
     var all = Enemies.all().slice();
-    for (var k = 0; k < all.length; k++) Enemies.damage(all[k].id, 99);
+    for (var k = 0; k < all.length; k++) Enemies.damage(all[k].id, 999);
     Game.tick(); Presentation.sync();
     chk(Towers.targetOf(tid) === -1, '(g.cleared)');
     chk(Presentation.boltCount() >= 0, '(g.bolts) got ' + Presentation.boltCount());
@@ -3366,7 +3370,10 @@
 
     // (f) wall 400ms fadingCount===0 + noLeak
     var t1 = performance.now();
-    while (performance.now() - t1 < 600) { Presentation.sync(); Game.tick(); }
+    // Do NOT tick the sim while measuring the FADE lifecycle: with the 14-wave
+    // schedule a newly spawned enemy dies inside this window and creates a FRESH
+    // fade, so the assert reads 1. (e) above correctly syncs without ticking.
+    while (performance.now() - t1 < 600) { Presentation.sync(); }
     chk(Presentation.fadingCount() === 0, '(f.fading0_400ms) got ' + Presentation.fadingCount());
     chk(Presentation.enemyCount() === Enemies.count(), '(f.noLeak) meshes=' + Presentation.enemyCount() + ' sim=' + Enemies.count());
 
@@ -3560,9 +3567,11 @@
     Sfx.resetPlayed();
     Missions.load(0); Game.reset(); Game.start();
     Towers.place(4,5); Towers.place(8,4); Towers.place(11,4); Towers.place(14,5); // zero-leak reference build (SEQ-288 measured)
-    for (var w = 0; w < 1501; w++) Game.tick();
+    Lives.reset(99); // drive-only buffer: these assert the WIN LATCH, not balance — the
+                     // 4-tower reference build stopped being zero-leak at the 14-wave schedule
+    for (var w = 0; w < 3300; w++) Game.tick();
     var all = Enemies.all().slice();
-    for (var j = 0; j < all.length; j++) Enemies.damage(all[j].id, 99);
+    for (var j = 0; j < all.length; j++) Enemies.damage(all[j].id, 999);
     Game.tick();
     chk(Game.state() === 'won', '(i.state)');
     chk(Sfx.played.indexOf('win') >= 0, '(i.win)');
@@ -3661,9 +3670,11 @@
     chk(allDis,'(a.midDisabled)');
     // M8a-style force WIN: run past last pack then kill all living
     Towers.place(4,5); Towers.place(8,4); Towers.place(11,4); Towers.place(14,5); // zero-leak reference build (SEQ-288 measured)
-    for (var ci=0; ci<=1500; ci++) { Game.tick(); }
+    Lives.reset(99); // drive-only buffer: these assert the WIN LATCH, not balance — the
+                     // 4-tower reference build stopped being zero-leak at the 14-wave schedule
+    for (var ci=0; ci<=3300; ci++) { Game.tick(); }
     var allW=Enemies.all().slice();
-    for (var di=0; di<allW.length; di++) Enemies.damage(allW[di].id, 99);
+    for (var di=0; di<allW.length; di++) Enemies.damage(allW[di].id, 999);
     Game.tick();
     if (typeof gameFrameSim==='function') gameFrameSim();
     syncMissionButtonsFromState();
@@ -3768,7 +3779,7 @@
     Presentation.sync();
     chk(Presentation.reticleVisible()===true,'(c.visible)');
     var all=Enemies.all().slice();
-    for (var j=0;j<all.length;j++) Enemies.damage(all[j].id,99);
+    for (var j=0;j<all.length;j++) Enemies.damage(all[j].id,999);
     Game.tick(); Presentation.sync();
     chk(Presentation.reticleVisible()===false,'(d.clear)');
     var ov=document.getElementById('overlay');
@@ -3783,7 +3794,7 @@
     // (a) load(0) reset → packs text exact
     Missions.load(0); Game.reset(); updatePackPreview();
     var el = document.getElementById('hud-packs');
-    chk(el.textContent === 'Packs: 2 · 2 · 3 · 3 · 2 · 4 · 3 · 4 · 4 · 1', '(a.text) got "' + el.textContent + '"');
+    chk(el.textContent === 'Packs: 2 · 3 · 3 · 4 · 3 · 4 · 5 · 3 · 4 · 5 · 4 · 5 · 4 · 1', '(a.text) got "' + el.textContent + '"');
 
     // (b) load(1) reset → packs text exact
     Missions.load(1); Game.reset(); updatePackPreview();
