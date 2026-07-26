@@ -358,6 +358,10 @@ window.Grid = {
     backdrop.position.set(0, 0, -0.6);
     backdrop.name = 'backdrop';
     backdrop.renderOrder = -3;
+    // USER 2026-07-26: nothing behind the board — just the board on the clear colour.
+    // Kept as a mesh (not deleted) so the organ texture set and selftest_ORGANMAP's
+    // per-organ binding stay intact; it is simply never drawn.
+    backdrop.visible = false;
     scene.add(backdrop);
   },
 
