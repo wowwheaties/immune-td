@@ -181,7 +181,12 @@
   <div>Organ: <span id="hud-lives">0</span></div>
   <div>Wave: <span id="hud-wave">0</span></div>
   <div id="hud-packs" style="font-size:13px;opacity:0.9;">Packs: —</div>
-  <div id="hud-ver">v84</div>
+  <div id="hud-ver">v85</div>
+  <button id="btn-fullscreen" type="button" title="Toggle fullscreen"
+    style="display:none;margin-top:6px;width:100%;min-height:34px;font:14px monospace;
+           cursor:pointer;border-radius:6px;border:1px solid #666;background:#222;color:#fff;">
+    &#9974; Fullscreen
+  </button>
 </div>
 <div id="outcome-screen" style="display:none;position:absolute;left:max(8px,env(safe-area-inset-left));right:auto;max-width:min(280px,46vw);bottom:calc(var(--bar-h,120px) + 8px + env(safe-area-inset-bottom,0px));z-index:25;padding:12px 14px;background:rgba(0,0,0,0.8);color:#fff;font:17px monospace;border-radius:10px;text-align:center;">
   <span id="outcome-text"></span>
@@ -210,18 +215,18 @@
   <button id="btn-sell" type="button" class="game-btn">Sell</button>
   <div id="rotate-hint">Rotate your phone — bigger board in landscape</div>
 </div>
-<script src="three.min.js?v=84"></script>
-<script src="js/path.js?v=84"></script>
-<script src="js/grid.js?v=84"></script>
-<script src="js/lives.js?v=84"></script>
-<script src="js/enemies.js?v=84"></script>
-<script src="js/economy.js?v=84"></script>
-<script src="js/towers.js?v=84"></script>
-<script src="js/waves.js?v=84"></script>
-<script src="js/missions.js?v=84"></script>
-<script src="js/game.js?v=84"></script>
-<script src="js/presentation.js?v=84"></script><script src="js/ambient.js?v=84"></script>
-<script src="js/sfx.js?v=84"></script>
+<script src="three.min.js?v=85"></script>
+<script src="js/path.js?v=85"></script>
+<script src="js/grid.js?v=85"></script>
+<script src="js/lives.js?v=85"></script>
+<script src="js/enemies.js?v=85"></script>
+<script src="js/economy.js?v=85"></script>
+<script src="js/towers.js?v=85"></script>
+<script src="js/waves.js?v=85"></script>
+<script src="js/missions.js?v=85"></script>
+<script src="js/game.js?v=85"></script>
+<script src="js/presentation.js?v=85"></script><script src="js/ambient.js?v=85"></script>
+<script src="js/sfx.js?v=85"></script>
 <script>
 (function() {
   var canvas = document.getElementById('c');
@@ -4807,6 +4812,56 @@
     Missions.load(0); Game.reset();
     var el = document.getElementById('overlay');
     el.textContent = out.length ? ('SELFTEST FIELD ' + out.join(' | ')) : 'SELFTEST FIELD PASS';
+    return out.length === 0;
+  };
+
+  window.Fullscreen = (function(){
+    var el = document.documentElement;
+    var supported = !!(el.requestFullscreen || el.webkitRequestFullscreen);
+    function active(){ return !!(document.fullscreenElement || document.webkitFullscreenElement); }
+    function toggle(){
+      try {
+        if (active()) { (document.exitFullscreen || document.webkitExitFullscreen).call(document); }
+        else { (el.requestFullscreen || el.webkitRequestFullscreen).call(el); }
+      } catch (e) {}
+    }
+    function sync(){
+      var b = document.getElementById('btn-fullscreen');
+      if (!b) return;
+      b.style.display = supported ? 'block' : 'none';
+      b.innerHTML = active() ? '&#9974; Exit' : '&#9974; Fullscreen';
+    }
+    return { supported: supported, active: active, toggle: toggle, sync: sync };
+  })();
+  (function(){
+    var b = document.getElementById('btn-fullscreen');
+    if (b) b.addEventListener('click', function(){ Fullscreen.toggle(); });
+    document.addEventListener('fullscreenchange', Fullscreen.sync);
+    document.addEventListener('webkitfullscreenchange', Fullscreen.sync);
+    Fullscreen.sync();
+  })();
+
+  window.selftest_FULLSCREEN = function() {
+    var out = [];
+    function chk(c, m) { if (!c) out.push('FAIL ' + m); }
+    var b = document.getElementById('btn-fullscreen');
+    chk(b !== null, '(a) #btn-fullscreen exists');
+    chk(typeof window.Fullscreen === 'object', '(b) Fullscreen module');
+    chk(typeof Fullscreen.toggle === 'function', '(b.2) toggle fn');
+    chk(typeof Fullscreen.supported === 'boolean', '(b.3) supported flag');
+    if (b) {
+      Fullscreen.sync();
+      var disp = b.style.display;
+      chk(Fullscreen.supported ? disp !== 'none' : disp === 'none',
+          '(c) visibility must match support: supported=' + Fullscreen.supported + ' display=' + disp);
+      if (Fullscreen.supported) {
+        chk(b.getBoundingClientRect().height >= 30, '(c.2) height got ' + b.getBoundingClientRect().height);
+        chk(/Fullscreen|Exit/.test(b.textContent), '(c.3) label got ' + b.textContent.trim());
+      }
+    }
+    chk(Fullscreen.active() === false, '(d) not fullscreen at rest');
+    var el2 = document.getElementById('overlay');
+    el2.textContent = out.length ? ('SELFTEST FULLSCREEN ' + out.join(' | ')) : 'SELFTEST FULLSCREEN PASS';
     return out.length === 0;
   };
 
