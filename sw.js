@@ -1,6 +1,6 @@
-var VER = 'v98';
-var CACHE_NAME = 'bastion-v98'; // literal for VERSTAMP; must match VER
-var N = '98';
+var VER = 'v99';
+var CACHE_NAME = 'bastion-v99'; // literal for VERSTAMP; must match VER
+var N = '99';
 var JS = ['path','grid','lives','enemies','economy','towers','waves','missions','game','presentation','ambient','sfx'];
 var NETFIRST = ['./','./index.html'].concat(JS.map(function(n){ return './js/'+n+'.js?v='+N; }));
 var IMMUTABLE = ['./three.min.js','./manifest.webmanifest','./icon-192.png','./icon-512.png','./apple-touch-icon.png'];
@@ -19,6 +19,13 @@ ASSETS.push('./assets/enemy_fast.png');
 ASSETS.push('./assets/units/u_pathogen_basic_sheet.png');
 ASSETS.push('./assets/units/u_pathogen_fast_sheet.png');
 ASSETS.push('./assets/units/u_pathogen_boss_sheet.png');
+ASSETS.push('./assets/units/u_pathogen_fungus_sheet.png');
+ASSETS.push('./assets/units/u_pathogen_parasite_sheet.png');
+ASSETS.push('./assets/units/u_pathogen_cancer_sheet.png');
+ASSETS.push('./assets/units/u_pathogen_spore_sheet.png');
+ASSETS.push('./assets/units/u_pathogen_toxin_sheet.png');
+ASSETS.push('./assets/units/u_pathogen_prion_sheet.png');
+ASSETS.push('./assets/units/u_pathogen_biofilm_sheet.png');
 ASSETS.push('./assets/units/u_tower_neutrophil_sheet.png');
 ASSETS.push('./assets/units/u_tower_macrophage_sheet.png');
 ASSETS.push('./assets/units/u_tower_antibody_sheet.png');

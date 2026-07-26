@@ -9,6 +9,10 @@ window.Enemies = {
   FUNGUS_SPEED: 14,
   PARASITE_SPEED: 16,
   CANCER_SPEED: 12,
+  SPORE_HP: 4,    SPORE_SPEED: 5,
+  TOXIN_HP: 8,    TOXIN_SPEED: 7,
+  PRION_HP: 22,   PRION_SPEED: 11,
+  BIOFILM_HP: 28, BIOFILM_SPEED: 20,
   BOSS_HP: 100,
   BOSS_SPEED: 14,
   PACK_STAGGER: 3,
@@ -30,6 +34,10 @@ window.Enemies = {
     else if (type === 'fungus') { hp = this.FUNGUS_HP; speedTicks = this.FUNGUS_SPEED; }
     else if (type === 'parasite') { hp = this.PARASITE_HP; speedTicks = this.PARASITE_SPEED; }
     else if (type === 'cancer') { hp = this.CANCER_HP; speedTicks = this.CANCER_SPEED; }
+    else if (type === 'spore')   { hp = this.SPORE_HP;   speedTicks = this.SPORE_SPEED; }
+    else if (type === 'toxin')   { hp = this.TOXIN_HP;   speedTicks = this.TOXIN_SPEED; }
+    else if (type === 'prion')   { hp = this.PRION_HP;   speedTicks = this.PRION_SPEED; }
+    else if (type === 'biofilm') { hp = this.BIOFILM_HP; speedTicks = this.BIOFILM_SPEED; }
     else if (type === 'boss') { hp = this.BOSS_HP; speedTicks = this.BOSS_SPEED; }
     holdTicks = holdTicks | 0;
     if (holdTicks < 0) holdTicks = 0;

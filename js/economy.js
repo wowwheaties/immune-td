@@ -3,7 +3,7 @@ window.Economy = {
   PLACE_COST: 50,
   SELL_REFUND: 25,
   SLOW_COST: 75,
-  KILL_REWARD: { basic: 5, fast: 8, fungus: 10, parasite: 12, boss: 60 },
+  KILL_REWARD: { basic: 5, fast: 8, spore: 6, toxin: 9, parasite: 12, fungus: 10, prion: 20, biofilm: 18, cancer: 25, boss: 60 },
   _gold: 0,
 
   reset: function(n) {

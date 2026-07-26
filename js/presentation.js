@@ -106,6 +106,13 @@
       pathogen_basic: loadOne('assets/units/u_pathogen_basic_sheet.png'),
       pathogen_boss: loadOne('assets/units/u_pathogen_boss_sheet.png'),
       pathogen_fast: loadOne('assets/units/u_pathogen_fast_sheet.png'),
+      pathogen_fungus:   loadOne('assets/units/u_pathogen_fungus_sheet.png'),
+      pathogen_parasite: loadOne('assets/units/u_pathogen_parasite_sheet.png'),
+      pathogen_cancer:   loadOne('assets/units/u_pathogen_cancer_sheet.png'),
+      pathogen_spore:    loadOne('assets/units/u_pathogen_spore_sheet.png'),
+      pathogen_toxin:    loadOne('assets/units/u_pathogen_toxin_sheet.png'),
+      pathogen_prion:    loadOne('assets/units/u_pathogen_prion_sheet.png'),
+      pathogen_biofilm:  loadOne('assets/units/u_pathogen_biofilm_sheet.png'),
       tower_neutrophil: loadOne('assets/units/u_tower_neutrophil_sheet.png'),
       tower_macrophage: loadOne('assets/units/u_tower_macrophage_sheet.png'),
       tower_antibody: loadOne('assets/units/u_tower_antibody_sheet.png'),
@@ -571,15 +578,12 @@
           }
           // Use unit sheets for basic/fast enemies (SEQ-281)
           var texE;
-          if (isBoss) {
-            ensureUnitSheets();
-            texE = _unitSheets.pathogen_boss || _unitSheets.pathogen_basic;
-          } else if (!isFast) {
-            ensureUnitSheets();
-            texE = _unitSheets.pathogen_basic || _enemyTex.normal;
-          } else {
-            texE = _unitSheets.pathogen_fast || _enemyTex.fast;
-          }
+          ensureUnitSheets();
+          var _ty = (e && e.type) ? e.type : 'basic';
+          texE = _unitSheets['pathogen_' + _ty]
+              || (isBoss ? _unitSheets.pathogen_boss : null)
+              || (isFast ? (_unitSheets.pathogen_fast || _enemyTex.fast)
+                         : (_unitSheets.pathogen_basic || _enemyTex.normal));
           var mat2 = new THREE.MeshBasicMaterial({
             map: texE,
             transparent: true,
@@ -763,6 +767,10 @@
       for (var j2 = 0; j2 < allEnemies.length; j2++) {
         var e2 = allEnemies[j2];
         var maxHp = (e2.type === 'fast') ? (Enemies.FAST_HP || 6) : ((e2.type === 'boss') ? (Enemies.BOSS_HP || 100) : (Enemies.DEFAULT_HP || 10));
+        var _MAXHP = { fast: Enemies.FAST_HP, boss: Enemies.BOSS_HP, fungus: Enemies.FUNGUS_HP,
+                       parasite: Enemies.PARASITE_HP, cancer: Enemies.CANCER_HP, spore: Enemies.SPORE_HP,
+                       toxin: Enemies.TOXIN_HP, prion: Enemies.PRION_HP, biofilm: Enemies.BIOFILM_HP };
+        maxHp = _MAXHP[e2.type] || Enemies.DEFAULT_HP || 10;
         var ratio = e2.hp / maxHp;
         var barKey = 'e'+e2.id;
         if (!meshes[barKey]) continue;
