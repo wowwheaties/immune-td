@@ -1,6 +1,6 @@
-var VER = 'v106';
-var CACHE_NAME = 'bastion-v106'; // literal for VERSTAMP; must match VER
-var N = '106';
+var VER = 'v107';
+var CACHE_NAME = 'bastion-v107'; // literal for VERSTAMP; must match VER
+var N = '107';
 var JS = ['path','grid','lives','enemies','economy','towers','waves','missions','game','presentation','ambient','sfx'];
 var NETFIRST = ['./','./index.html'].concat(JS.map(function(n){ return './js/'+n+'.js?v='+N; }));
 var IMMUTABLE = ['./three.min.js','./manifest.webmanifest','./icon-192.png','./icon-512.png','./apple-touch-icon.png'];

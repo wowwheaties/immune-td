@@ -327,7 +327,7 @@ window.Grid = {
     scene.add(outer);
 
     // organ canvas — continuous painted scene (tiles become invisible overlays)
-    var boardPath = 'assets/organs/' + organ + '_board.jpg?v=47';
+    var boardPath = 'assets/organs/' + organ + '_board.jpg?v=107';
     var boardLoader = new THREE.TextureLoader();
     var boardTex = boardLoader.load(boardPath);
     if (THREE.SRGBColorSpace !== undefined) {

@@ -232,7 +232,7 @@
   <div>Organ: <span id="hud-lives">0</span></div>
   <div>Wave: <span id="hud-wave">0</span></div>
   <div id="hud-packs" style="font-size:13px;opacity:0.9;">Packs: —</div>
-  <div id="hud-ver">v106</div>
+  <div id="hud-ver">v107</div>
   <button id="btn-fullscreen" type="button" title="Toggle fullscreen"
     style="display:none;margin-top:6px;width:100%;min-height:34px;font:14px monospace;
            cursor:pointer;border-radius:6px;border:1px solid #666;background:#222;color:#fff;">
@@ -266,18 +266,18 @@
   <button id="btn-sell" type="button" class="game-btn">Sell</button>
   <div id="rotate-hint">Rotate your phone — bigger board in landscape</div>
 </div>
-<script src="three.min.js?v=106"></script>
-<script src="js/path.js?v=106"></script>
-<script src="js/grid.js?v=106"></script>
-<script src="js/lives.js?v=106"></script>
-<script src="js/enemies.js?v=106"></script>
-<script src="js/economy.js?v=106"></script>
-<script src="js/towers.js?v=106"></script>
-<script src="js/waves.js?v=106"></script>
-<script src="js/missions.js?v=106"></script>
-<script src="js/game.js?v=106"></script>
-<script src="js/presentation.js?v=106"></script><script src="js/ambient.js?v=106"></script>
-<script src="js/sfx.js?v=106"></script>
+<script src="three.min.js?v=107"></script>
+<script src="js/path.js?v=107"></script>
+<script src="js/grid.js?v=107"></script>
+<script src="js/lives.js?v=107"></script>
+<script src="js/enemies.js?v=107"></script>
+<script src="js/economy.js?v=107"></script>
+<script src="js/towers.js?v=107"></script>
+<script src="js/waves.js?v=107"></script>
+<script src="js/missions.js?v=107"></script>
+<script src="js/game.js?v=107"></script>
+<script src="js/presentation.js?v=107"></script><script src="js/ambient.js?v=107"></script>
+<script src="js/sfx.js?v=107"></script>
 <script>
 (function() {
   var canvas = document.getElementById('c');
@@ -630,6 +630,52 @@
 
   // game state
   window.__game = { state: "ready", grid: Grid, path: Path, lives: Lives, enemies: Enemies };
+
+  // --- selftest geometry helpers -------------------------------------------------
+  // Targeting tests used to hardcode a tower cell hand-picked for one specific route
+  // (e.g. Towers.place(4,5) because the old wp3/wp5 happened to sit beside it). That
+  // silently pinned the map: any path edit broke a dozen tests for reasons that had
+  // nothing to do with the code under test. Derive the cell from the route instead.
+  // See tools/pathkit.py.
+
+  // Nearest buildable cell within Manhattan `r` of EVERY listed waypoint index.
+  // Returns [x,y], or null if the route admits no such cell.
+  window.cellCovering = function (idxs, r) {
+    var wps = [];
+    for (var i = 0; i < idxs.length; i++) {
+      var w = Path.cellAt(idxs[i]);
+      if (!w) return null;
+      wps.push(w);
+    }
+    for (var y = 0; y < Grid.H; y++) {
+      for (var x = 0; x < Grid.W; x++) {
+        if (!Grid.isBuildable(x, y)) continue;
+        var all = true;
+        for (var k = 0; k < wps.length; k++) {
+          if (Math.abs(wps[k][0] - x) + Math.abs(wps[k][1] - y) > r) { all = false; break; }
+        }
+        if (all) return [x, y];
+      }
+    }
+    return null;
+  };
+
+  // A buildable cell guaranteed to be OUT of range r of every waypoint (for
+  // "never acquires" tests, which previously hardcoded a far corner).
+  window.cellFarFromPath = function (r) {
+    for (var y = 0; y < Grid.H; y++) {
+      for (var x = 0; x < Grid.W; x++) {
+        if (!Grid.isBuildable(x, y)) continue;
+        var far = true;
+        for (var k = 0; k < Path.WAYPOINTS.length; k++) {
+          var w = Path.WAYPOINTS[k];
+          if (Math.abs(w[0] - x) + Math.abs(w[1] - y) <= r) { far = false; break; }
+        }
+        if (far) return [x, y];
+      }
+    }
+    return null;
+  };
 
   // selftest_PTarget — F-STAB target acquisition + retention
   window.selftest_PTarget = function() {
@@ -1079,8 +1125,13 @@
   window.addEventListener('resize', layoutBottomBar);
 
   // assert helper — writes to overlay, returns false on fail
+  // Several selftests rebuild overlay.textContent from an OK-only line list at the end,
+  // which ERASES the FAIL text written here and leaves a bare "SELFTEST X FAIL" with no
+  // cause. Record every failure in a durable log the gate can read regardless.
+  window.__failLog = [];
   function assert(cond, msg) {
     if (!cond) {
+      window.__failLog.push(msg);
       overlay.textContent += '\nFAIL: ' + msg;
       return false;
     }
@@ -1096,9 +1147,18 @@
 
     Grid.init(1);
 
-    // (a) WAYPOINTS.length === 24 and Path.length === 24
-    chk(Path.WAYPOINTS.length === 24, 'WAYPOINTS.length==24');
-    chk(Path.length === 24, 'Path.length==24');
+    // (a) Path mirrors the loaded mission table. Derived, NOT a hardcoded count:
+    // a literal here pinned the route and blocked every path change (see tools/pathkit.py).
+    var K = Path.WAYPOINTS.length;
+    chk(K >= 8, 'WAYPOINTS.length sane got ' + K);
+    chk(Path.length === K, 'Path.length==WAYPOINTS.length got ' + Path.length);
+
+    // (a.2) contiguity — the invariant the literal 24 never actually checked
+    for (var ic = 1; ic < K; ic++) {
+      var pa = Path.WAYPOINTS[ic - 1], pb = Path.WAYPOINTS[ic];
+      chk(Math.abs(pa[0] - pb[0]) + Math.abs(pa[1] - pb[1]) === 1,
+          'contiguous step ' + ic + ' [' + pa + ']->[' + pb + ']');
+    }
 
     // (b) every waypoint in bounds; no duplicates
     var seen = {};
@@ -1144,8 +1204,8 @@
         pathCount++;
       }
     }
-    chk(floorCount === 120, 'floorCount===120 got ' + floorCount);
-    chk(pathCount === 24, 'pathCount===24 got ' + pathCount);
+    chk(floorCount === Grid.W * Grid.H - K, 'floorCount===' + (Grid.W * Grid.H - K) + ' got ' + floorCount);
+    chk(pathCount === K, 'pathCount===' + K + ' got ' + pathCount);
     chk(blockedCount === 0, 'blockedCount===0 got ' + blockedCount);
 
     // (f) init(1) twice → identical gridTypes
@@ -1303,7 +1363,10 @@
     // (d) exit lives 5→4
     Lives.reset(); Enemies.reset();
     var idD = Enemies.spawn();
-    for (var t3 = 0; t3 < 240; t3++) { Enemies.tick(); }
+    // budget derived from route length (basic walks one cell per 10 ticks). A literal
+    // 240 here assumed a 24-cell route and broke the moment the map got longer.
+    var exitBudget = Path.WAYPOINTS.length * 10 + 40;
+    for (var t3 = 0; t3 < exitBudget; t3++) { Enemies.tick(); }
     chk(Enemies.count() === 0, '(d) count==0 after exit');
     chk(Enemies.get(idD) === null, '(d) get(id)==null after exit');
     chk(Lives.get() === 4, '(d) lives==4 got ' + Lives.get());
@@ -1523,7 +1586,10 @@
 
     // (e) acquisition = highest wpIndex among in-range
     fullReset();
-    var tidE = Towers.place(4, 5);
+    // cell derived from the route: must cover wp3 (t=30) and wp5 (t=50)
+    var cE = window.cellCovering([3, 5], 2);
+    chk(cE !== null, '(e.cell) a cell covering wp3+wp5 exists');
+    var tidE = Towers.place(cE[0], cE[1]);
     var e1 = Enemies.spawn(); // at wp0 initially, will advance
     for (var k4 = 0; k4 < 30; k4++) { Enemies.tick(); } // e1 advances to wpIndex=3
     var e2 = Enemies.spawn(); // at wp0, wpIndex=0
@@ -1798,7 +1864,10 @@
     chk(exitCell !== null && exitCell[0] === 15 && exitCell[1] === 4, '(d) exit=[15,4] got [' + (exitCell ? exitCell[0] : 'null') + ',' + (exitCell ? exitCell[1] : 'null') + ']');
 
     // (e) load0/1/2 restore M0/M1/M2 waypoint tables (literal deep-equal from missions.js)
-    var M0_WAYPOINTS = [[0,4],[1,4],[2,4],[3,4],[3,5],[3,6],[4,6],[5,6],[6,6],[7,6],[7,5],[7,4],[7,3],[8,3],[9,3],[10,3],[10,4],[10,5],[11,5],[12,5],[13,5],[13,4],[14,4],[15,4]];
+    // M0 is the tunable map — this block tests that its waypoints are RESTORED after
+    // loading other missions, not that they equal one specific route. M1/M2/M3 stay
+    // verbatim-locked below. See tools/pathkit.py.
+    var M0_WAYPOINTS = Missions.LIST[0].waypoints;
     var M1_WAYPOINTS = [[0,1],[1,1],[2,1],[3,1],[4,1],[5,1],[5,2],[5,3],[5,4],[6,4],[7,4],[8,4],[8,3],[8,2],[9,2],[10,2],[11,2],[11,3],[11,4],[11,5],[12,5],[13,5],[14,5],[15,5]];
     var M2_WAYPOINTS = [[0,7],[1,7],[2,7],[3,7],[3,6],[3,5],[3,4],[4,4],[5,4],[5,5],[5,6],[6,6],[7,6],[8,6],[9,6],[9,5],[9,4],[9,3],[10,3],[11,3],[12,3],[13,3],[13,2],[14,2],[15,2]];
     function deepEqual(a, b) { if (a.length !== b.length) return false; for (var i = 0; i < a.length; i++) { if (a[i][0] !== b[i][0] || a[i][1] !== b[i][1]) return false; } return true; }
@@ -2140,9 +2209,12 @@
     chk(Missions.LIST[0].gold === 200, '(a.m0.gold)');
     chk(Missions.LIST[0].lives === 5, '(a.m0.lives)');
     chk(Missions.LIST[0].seed === 1, '(a.m0.seed)');
-    chk(Missions.LIST[0].waypoints.length === 24, '(a.m0.n)');
-    chk(Missions.LIST[0].waypoints[0][0] === 0 && Missions.LIST[0].waypoints[0][1] === 4, '(a.m0.start)');
-    chk(Missions.LIST[0].waypoints[23][0] === 15 && Missions.LIST[0].waypoints[23][1] === 4, '(a.m0.exit)');
+    // M0 is the tunable map (see tools/pathkit.py). Its LENGTH is deliberately not
+    // pinned — start cell and right-edge exit are the invariants that actually matter.
+    var m0wp = Missions.LIST[0].waypoints;
+    chk(m0wp.length >= 20, '(a.m0.n) got ' + m0wp.length);
+    chk(m0wp[0][0] === 0 && m0wp[0][1] === 4, '(a.m0.start)');
+    chk(m0wp[m0wp.length - 1][0] === Grid.W - 1, '(a.m0.exit) exits right edge got ' + m0wp[m0wp.length - 1]);
     // M1
     chk(Missions.LIST[1].gold === 250, '(a.m1.gold)');
     chk(Missions.LIST[1].lives === 3, '(a.m1.lives)');
@@ -2181,9 +2253,10 @@
     chk(Missions.current() === 0, '(b.cur)');
     chk(Economy.getGold() === 200, '(b.gold)');
     chk(Lives.get() === 5, '(b.lives)');
-    chk(Path.WAYPOINTS.length === 24, '(b.n)');
+    chk(Path.WAYPOINTS.length === Missions.LIST[0].waypoints.length, '(b.n) mirrors M0 table got ' + Path.WAYPOINTS.length);
     chk(Path.cellAt(0)[0] === 0 && Path.cellAt(0)[1] === 4, '(b.start)');
-    chk(Path.cellAt(23)[0] === 15 && Path.cellAt(23)[1] === 4, '(b.exit)');
+    var bx = Path.cellAt(Path.WAYPOINTS.length - 1);
+    chk(bx[0] === Grid.W - 1, '(b.exit) exits right edge got [' + bx + ']');
     chk(Path.isPath(0, 4) === true, '(b.pathStart)');
     chk(Path.isPath(0, 1) === false, '(b.notM1start)');
     chk(Waves.tickCount() === 0, '(b.w0)');
@@ -2486,7 +2559,9 @@
     var idE = Enemies.spawn();
     Presentation.sync();
     chk(Presentation.enemyCount() === 1, '(e.pre)');
-    for (var tE = 0; tE < 240; tE++) { Enemies.tick(); }
+    // budget derived from route length, not a literal 240 (see tools/pathkit.py)
+    var tEBudget = Path.WAYPOINTS.length * 10 + 40;
+    for (var tE = 0; tE < tEBudget; tE++) { Enemies.tick(); }
     Presentation.sync();
     chk(Presentation.enemyCount() === 0, '(e.count0)');
     chk(Enemies.count() === 0, '(e.sim0)');
@@ -2735,7 +2810,7 @@
       chk(violations === 0, '(a.'+m+') M'+m+' specials near entry: '+violations);
     }
 
-    // (b) M0: exactly 120 buildable cells, zero cells report type 2
+    // (b) M0: every non-path cell buildable, zero cells report type 2
     Missions.load(0); Grid.init(1);
     var buildCount = 0, type2Count = 0;
     for (var y3 = 0; y3 < Grid.H; y3++) {
@@ -2745,7 +2820,8 @@
         if (g[y3 * Grid.W + x3] === 2) type2Count++;
       }
     }
-    chk(buildCount === 120, '(b.buildable) got '+buildCount);
+    var wantBuild = Grid.W * Grid.H - Path.WAYPOINTS.length;
+    chk(buildCount === wantBuild, '(b.buildable) want '+wantBuild+' got '+buildCount);
     chk(type2Count === 0, '(b.type2) got '+type2Count);
 
     // (c) find patch/inflamed/null cells; place towers; assert cdMax
@@ -2849,12 +2925,24 @@
     for (var i=0; i<30; i++) Towers.tick();
     chk(Enemies.get(e6).hp === 10, '(c3.hp) got '+Enemies.get(e6).hp);
 
-    // (d) fever range=2: enemies at (3,6) and (4,7), tower at (1,6) — distance 2 <= 2
+    // (d) fever: e7 (ticked to wp5) sits at the EDGE of fever's range 2; e8 (at wp0)
+    // sits one step OUTSIDE it, so the two take different damage. Cell derived from the
+    // route rather than hardcoded — see window.cellCovering / tools/pathkit.py.
     Missions.load(0); Game.reset(); Economy.reset(999);
+    var FEVER_R = 2, OUTSIDE_R = 3;
+    var wD5 = Path.cellAt(5), wD0 = Path.cellAt(0), cD = null;
+    for (var yD = 0; yD < Grid.H && !cD; yD++) {
+      for (var xD = 0; xD < Grid.W && !cD; xD++) {
+        if (!Grid.isBuildable(xD, yD)) continue;
+        if (Math.abs(wD5[0]-xD) + Math.abs(wD5[1]-yD) === FEVER_R &&
+            Math.abs(wD0[0]-xD) + Math.abs(wD0[1]-yD) === OUTSIDE_R) cD = [xD, yD];
+      }
+    }
+    chk(cD !== null, '(d.cell) fever cell derived from route');
     var e7 = Enemies.spawn(); chk(e7 !== null, '(d.e7)');
     for (var i=0; i<50; i++) { if (typeof Enemies.tick === 'function') Enemies.tick(); }
     var e8 = Enemies.spawn(); chk(e8 !== null, '(d.e8)');
-    Towers.place(1, 6, 'fever');
+    Towers.place(cD[0], cD[1], 'fever');
     for (var i=0; i<30; i++) Towers.tick();
     chk(Enemies.get(e7).hp === 4, '(d.hp7) got '+Enemies.get(e7).hp);
     chk(Enemies.get(e8).hp === 9, '(d.hp8) got '+Enemies.get(e8).hp);
@@ -3448,16 +3536,31 @@
     if (Presentation.clearFx) Presentation.clearFx();
     Presentation.setHoverCell(null, null);
     var tids = [];
-    var cells = [[2,3],[4,5]];
-    for (var ci = 0; ci < cells.length; ci++) {
-      if (!Grid.isBuildable(cells[ci][0], cells[ci][1])) continue;
+    // Two towers that BOTH cover a run of three consecutive waypoints, so the three
+    // enemies (spawned one cell apart) are simultaneously in range of both. Derived
+    // from the route — hardcoding [2,3],[4,5] pinned the map. See tools/pathkit.py.
+    var cells = null;
+    for (var kk = 0; kk + 2 < Path.WAYPOINTS.length && !cells; kk++) {
+      var found = [];
+      for (var yy = 0; yy < Grid.H; yy++) {
+        for (var xx = 0; xx < Grid.W; xx++) {
+          if (!Grid.isBuildable(xx, yy)) continue;
+          var okAll = true;
+          for (var q = 0; q < 3; q++) {
+            var wq = Path.cellAt(kk + q);
+            if (Math.abs(wq[0] - xx) + Math.abs(wq[1] - yy) > 2) { okAll = false; break; }
+          }
+          if (okAll) found.push([xx, yy]);
+          if (found.length >= 2) break;
+        }
+        if (found.length >= 2) break;
+      }
+      if (found.length >= 2) cells = found;
+    }
+    chk(cells !== null, '(a.cells) two covering cells derived from route');
+    for (var ci = 0; cells && ci < cells.length; ci++) {
       var tid = Towers.place(cells[ci][0], cells[ci][1]);
       if (typeof tid === 'number') tids.push(tid);
-    }
-    if (tids.length < 2) {
-      var tA = Towers.place(2, 3); var tB = Towers.place(4, 5);
-      if (typeof tA === 'number') tids.push(tA);
-      if (typeof tB === 'number') tids.push(tB);
     }
     chk(tids.length >= 2, '(a.towers) n=' + tids.length);
     var eids = [
@@ -4745,8 +4848,8 @@
     chk(rib.name === 'flowRibbon', '(b.2) name got ' + (rib && rib.name));
     chk(rib.parent === Grid.scene, '(b.3) attached to Grid.scene');
     var K = Path.WAYPOINTS.length;
-    chk(K === 24, '(b.4) M0 waypoints 24 got ' + K);
-    var want = 2 * ((24 - 1) * 8 + 1);
+    chk(K === Missions.LIST[0].waypoints.length, '(b.4) M0 waypoints mirror table got ' + K);
+    var want = 2 * ((K - 1) * 8 + 1);
     var got = rib.geometry.getAttribute('position').count;
     chk(got === want, '(b.5) vertex count ' + want + ' got ' + got);
     chk(rib.renderOrder === 4, '(b.6) renderOrder 4 got ' + rib.renderOrder);
