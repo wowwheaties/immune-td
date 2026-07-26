@@ -1,6 +1,6 @@
-var VER = 'v100';
-var CACHE_NAME = 'bastion-v100'; // literal for VERSTAMP; must match VER
-var N = '100';
+var VER = 'v101';
+var CACHE_NAME = 'bastion-v101'; // literal for VERSTAMP; must match VER
+var N = '101';
 var JS = ['path','grid','lives','enemies','economy','towers','waves','missions','game','presentation','ambient','sfx'];
 var NETFIRST = ['./','./index.html'].concat(JS.map(function(n){ return './js/'+n+'.js?v='+N; }));
 var IMMUTABLE = ['./three.min.js','./manifest.webmanifest','./icon-192.png','./icon-512.png','./apple-touch-icon.png'];
@@ -46,7 +46,6 @@ ASSETS.push('./assets/units/icon_cytokine.png');
 ASSETS.push('./assets/organs/gut_cell_a.jpg?v=45');
 ASSETS.push('./assets/organs/gut_cell_b.jpg?v=45');
 ASSETS.push('./assets/organs/gut_lumen.jpg?v=45');
-ASSETS.push('./assets/organs/gut_backdrop.jpg?v=45');
 // Villi decor (SEQ-294)
 ASSETS.push('./assets/organs/gut_villi_a.png?v=45');
 ASSETS.push('./assets/organs/gut_villi_b.png?v=45');
@@ -54,7 +53,6 @@ ASSETS.push('./assets/organs/gut_villi_c.png?v=45');
 ASSETS.push('./assets/organs/stomach_cell_a.jpg?v=44');
 ASSETS.push('./assets/organs/stomach_cell_b.jpg?v=44');
 ASSETS.push('./assets/organs/stomach_lumen.jpg?v=44');
-ASSETS.push('./assets/organs/stomach_backdrop.jpg?v=44');
 ASSETS.push('./assets/organs/stomach_rugae_a.png?v=82');
 ASSETS.push('./assets/organs/stomach_rugae_b.png?v=82');
 ASSETS.push('./assets/organs/stomach_rugae_c.png?v=82');
@@ -62,15 +60,12 @@ ASSETS.push('./assets/organs/stomach_board.jpg?v=47');
 ASSETS.push('./assets/organs/heart_cell_a.jpg?v=44');
 ASSETS.push('./assets/organs/heart_cell_b.jpg?v=44');
 ASSETS.push('./assets/organs/heart_lumen.jpg?v=44');
-ASSETS.push('./assets/organs/heart_backdrop.jpg?v=44');
 ASSETS.push('./assets/organs/kidney_cell_a.jpg?v=44');
 ASSETS.push('./assets/organs/kidney_cell_b.jpg?v=44');
 ASSETS.push('./assets/organs/kidney_lumen.jpg?v=44');
-ASSETS.push('./assets/organs/kidney_backdrop.jpg?v=44');
 ASSETS.push('./assets/organs/brain_cell_a.jpg?v=44');
 ASSETS.push('./assets/organs/brain_cell_b.jpg?v=44');
 ASSETS.push('./assets/organs/brain_lumen.jpg?v=44');
-ASSETS.push('./assets/organs/brain_backdrop.jpg?v=44');
 // Organ boards (SEQ-297)
 ASSETS.push('./assets/organs/gut_board.jpg?v=47');
 ASSETS.push('./assets/organs/heart_board.jpg?v=47');

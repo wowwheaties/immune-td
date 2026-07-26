@@ -128,7 +128,6 @@ window.Grid = {
       'assets/organs/' + key + '_cell_a.jpg?v=44',
       'assets/organs/' + key + '_cell_b.jpg?v=44',
       'assets/organs/' + key + '_lumen.jpg?v=44',
-      'assets/organs/' + key + '_backdrop.jpg?v=44'
     ];
     var loader = new THREE.TextureLoader();
     var tissue = {};
@@ -144,7 +143,6 @@ window.Grid = {
       if (i === 0) tissue.cell_a = tex;
       else if (i === 1) tissue.cell_b = tex;
       else if (i === 2) tissue.lumen = tex;
-      else if (i === 3) tissue.backdrop = tex;
     }
     this._tissueCache[key] = tissue;
     return tissue;
@@ -347,22 +345,6 @@ window.Grid = {
     organCanvas.name = 'organCanvas';
     scene.add(organCanvas);
 
-    // organ backdrop — behind everything (z=-0.6, frame is at z=-0.05/-0.08)
-    var bgGeo = new THREE.PlaneGeometry(W * TILE * 1.7, H * TILE * 1.9);
-    var bgMat = new THREE.MeshBasicMaterial({
-      map: tissue.backdrop,
-      side: THREE.DoubleSide,
-      depthWrite: false
-    });
-    var backdrop = new THREE.Mesh(bgGeo, bgMat);
-    backdrop.position.set(0, 0, -0.6);
-    backdrop.name = 'backdrop';
-    backdrop.renderOrder = -3;
-    // USER 2026-07-26: nothing behind the board — just the board on the clear colour.
-    // Kept as a mesh (not deleted) so the organ texture set and selftest_ORGANMAP's
-    // per-organ binding stay intact; it is simply never drawn.
-    backdrop.visible = false;
-    scene.add(backdrop);
   },
 
 
